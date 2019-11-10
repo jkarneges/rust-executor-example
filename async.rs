@@ -17,9 +17,9 @@ impl WrappedFuture {
     where
         F: Future<Output = ()> + 'static
     {
-        let c = move |mut cx: &mut Context| {
+        let c = move |cx: &mut Context| {
             let p: Pin<&mut F> = unsafe { Pin::new_unchecked(&mut f) };
-            match p.poll(&mut cx) {
+            match p.poll(cx) {
                 Poll::Ready(_) => Poll::Ready(()),
                 Poll::Pending => Poll::Pending,
             }
@@ -30,8 +30,8 @@ impl WrappedFuture {
         }
     }
 
-    pub fn poll(&mut self, mut cx: &mut Context) -> Poll<()> {
-        (self.poll_fn)(&mut cx)
+    pub fn poll(&mut self, cx: &mut Context) -> Poll<()> {
+        (self.poll_fn)(cx)
     }
 }
 
