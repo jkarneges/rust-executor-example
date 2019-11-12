@@ -178,10 +178,8 @@ impl MyWaker {
 }
 
 unsafe fn vt_clone(data: *const ()) -> RawWaker {
-    let w = Box::from_raw(data as *mut MyWaker);
-    let new_w = w.clone();
-    // convert back to pointer so the source MyWaker doesn't get dropped
-    Box::into_raw(w);
+    let w = (data as *const MyWaker).as_ref().unwrap();
+    let new_w = Box::new(w.clone());
 
     RawWaker::new(Box::into_raw(new_w) as *mut (), &VTABLE)
 }
@@ -192,11 +190,8 @@ unsafe fn vt_wake(data: *const ()) {
 }
 
 unsafe fn vt_wake_by_ref(data: *const ()) {
-    let mut w = Box::from_raw(data as *mut MyWaker);
+    let w = (data as *mut MyWaker).as_mut().unwrap();
     w.wake_by_ref();
-
-    // convert back to pointer so MyWaker doesn't get dropped
-    Box::into_raw(w);
 }
 
 unsafe fn vt_drop(data: *const ()) {
